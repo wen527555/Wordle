@@ -21,6 +21,9 @@ function reducer(state, action) {
         input: state.input.slice(0, -1),
       };
     case "SUBMIT_GUESS":
+      if (state.input.length === 5) {
+        return;
+      }
       const guessFeedback = getFeedbackColor(state.input, state.answer);
       const isCorrect = state.input.join("") === state.answer.join("");
       return {
@@ -31,7 +34,11 @@ function reducer(state, action) {
         ],
         input: [],
         currentRow: state.currentRow + 1,
-        isGameOver: isCorrect ? true : false,
+        isGameOver: isCorrect || state.currentRow >= 5,
+      };
+    case "RESET_GAME":
+      return {
+        ...initialState,
       };
     default:
       return state;
@@ -41,39 +48,49 @@ function reducer(state, action) {
 function getFeedbackColor(input, answer) {
   return input.map((letter, index) => {
     if (answer[index] === letter) {
-      return "bg-green-500";
-    } else if (answer.includes(letter)) {
-      return "bg-yellow-200";
-    } else {
-      return "bg-neutral-400";
+      return "bg-green-100";
     }
+    if (answer.includes(letter)) {
+      return "bg-yellow-200";
+    }
+    return "bg-zinc-300";
   });
 }
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const handleKeyDown = (event) => {
+    // console.log("event", event.key);
     if (state.isGameOver) return;
     const key = event.key.toUpperCase();
     if (event.key === "Backspace") {
       dispatch({ type: "REMOVE_LETTER" });
     }
-    if (key.length === 1 && key >= "A" && key <= "Z") {
-      if (state.input.length < 5) {
-        dispatch({ type: "ADD_LETTER", payload: key });
-      }
+    if (
+      key.length === 1 &&
+      key >= "A" &&
+      key <= "Z" &&
+      state.input.length < 5
+    ) {
+      dispatch({ type: "ADD_LETTER", payload: key });
     }
-    if (event.key === "Enter" && state.input.length === 5) {
+    if (event.key === "Enter") {
+      console.log("Enter key pressed");
       dispatch({ type: "SUBMIT_GUESS" });
     }
   };
 
+  const handleReset = () => {
+    dispatch({ type: "RESET_GAME" });
+  };
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
+    console.log("124");
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  });
+  }, []);
 
   return (
     <div className="flex justify-center items-center grid-rows-6 h-screen relative">
@@ -94,16 +111,22 @@ function App() {
               key={index}
               className={`border-[3px] p-2 text-center w-[62px] h-[62px] flex justify-center items-center text-[30px] font-medium ${color}`}
             >
-              {letter !== undefined ? letter : ""}
+              {letter}
             </div>
           );
         })}
       </div>
       {state.isGameOver && (
-        <div className="absolute inset-0 flex justify-center items-center">
-          <div className="bg-black text-white text-2xl font-bold flex justify-center items-center w-[150px] h-[50px] rounded">
+        <div className="absolute inset-0 flex flex-col justify-center items-center">
+          <div className="bg-black bg-opacity-75 text-white text-2xl font-bold flex justify-center items-center w-[180px] h-[80px] rounded mb-10">
             Genius!
           </div>
+          <button
+            onClick={handleReset}
+            className="bg-slate-400 bg-opacity-75 text-white text-2xl font-bold flex justify-center items-center w-[100px] h-[50px] rounded cursor-pointer"
+          >
+            Reset
+          </button>
         </div>
       )}
     </div>
