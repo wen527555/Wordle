@@ -11,6 +11,9 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case "ADD_LETTER":
+      if (state.input.length > 4) {
+        return state;
+      }
       return {
         ...state,
         input: [...state.input, action.payload],
@@ -20,9 +23,9 @@ function reducer(state, action) {
         ...state,
         input: state.input.slice(0, -1),
       };
-    case "SUBMIT_GUESS":
-      if (state.input.length === 5) {
-        return;
+    case "SUBMIT_GUESS": {
+      if (state.input.length !== 5) {
+        return state;
       }
       const guessFeedback = getFeedbackColor(state.input, state.answer);
       const isCorrect = state.input.join("") === state.answer.join("");
@@ -36,6 +39,8 @@ function reducer(state, action) {
         currentRow: state.currentRow + 1,
         isGameOver: isCorrect || state.currentRow >= 5,
       };
+    }
+
     case "RESET_GAME":
       return {
         ...initialState,
@@ -60,22 +65,15 @@ function getFeedbackColor(input, answer) {
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const handleKeyDown = (event) => {
-    // console.log("event", event.key);
     if (state.isGameOver) return;
     const key = event.key.toUpperCase();
     if (event.key === "Backspace") {
       dispatch({ type: "REMOVE_LETTER" });
     }
-    if (
-      key.length === 1 &&
-      key >= "A" &&
-      key <= "Z" &&
-      state.input.length < 5
-    ) {
+    if (key.length === 1 && key >= "A" && key <= "Z") {
       dispatch({ type: "ADD_LETTER", payload: key });
     }
     if (event.key === "Enter") {
-      console.log("Enter key pressed");
       dispatch({ type: "SUBMIT_GUESS" });
     }
   };
@@ -90,7 +88,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [state.isGameOver]);
 
   return (
     <div className="flex justify-center items-center grid-rows-6 h-screen relative">
