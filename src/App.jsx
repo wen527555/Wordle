@@ -83,9 +83,6 @@ function App() {
           const letterIndex = index % 5;
           let letter, color;
           if (rowIndex < state.guesses.length) {
-            console.log("rowIndex", rowIndex);
-            console.log("state.guesses.length", state.guesses);
-            console.log("letterIndex", letterIndex);
             letter = state.guesses[rowIndex].letters[letterIndex];
             color = state.guesses[rowIndex].feedback[letterIndex];
           } else if (rowIndex === state.currentRow) {
