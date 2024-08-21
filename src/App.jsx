@@ -72,9 +72,10 @@ function getFeedbackColor(input, answer) {
 async function getRandowWord() {
   const wordCollection = collection(db, "words");
   const wordSnapshot = await getDocs(wordCollection);
-  const wordList = wordSnapshot.docs.map((doc) => doc.id);
+  const wordList = wordSnapshot.docs.map((doc) => doc.data().word);
   const randomIndex = Math.floor(Math.random() * wordList.length);
   const randomWord = wordList[randomIndex];
+  console.log("randomWord", randomWord);
   return randomWord.split("");
 }
 
