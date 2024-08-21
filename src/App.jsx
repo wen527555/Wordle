@@ -75,7 +75,6 @@ async function getRandowWord() {
   const wordList = wordSnapshot.docs.map((doc) => doc.id);
   const randomIndex = Math.floor(Math.random() * wordList.length);
   const randomWord = wordList[randomIndex];
-  console.log("randomWord", randomWord);
   return randomWord.split("");
 }
 
