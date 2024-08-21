@@ -1,9 +1,10 @@
-import { useReducer, useEffect } from "react";
+import { useReducer, useEffect, useRef } from "react";
+import { db, collection, getDocs } from "./firebaseConfig";
 
 const initialState = {
   input: [],
   guesses: [],
-  answer: ["D", "E", "L", "A", "Y"],
+  answer: [],
   currentRow: 0,
   isGameOver: false,
 };
@@ -18,11 +19,15 @@ function reducer(state, action) {
         ...state,
         input: [...state.input, action.payload],
       };
-    case "REMOVE_LETTER":
+    case "REMOVE_LETTER": {
+      const inputArray = [...state.input];
+      inputArray.pop();
       return {
         ...state,
-        input: state.input.slice(0, -1),
+        input: inputArray,
       };
+    }
+
     case "SUBMIT_GUESS": {
       if (state.input.length !== 5) {
         return state;
@@ -44,7 +49,9 @@ function reducer(state, action) {
     case "RESET_GAME":
       return {
         ...initialState,
+        answer: action.payload,
       };
+
     default:
       return state;
   }
@@ -62,11 +69,39 @@ function getFeedbackColor(input, answer) {
   });
 }
 
+async function getRandowWord() {
+  const wordCollection = collection(db, "words");
+  const wordSnapshot = await getDocs(wordCollection);
+  const wordList = wordSnapshot.docs.map((doc) => doc.id);
+  const randomIndex = Math.floor(Math.random() * wordList.length);
+  const randomWord = wordList[randomIndex];
+  console.log("randomWord", randomWord);
+  return randomWord.split("");
+}
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const isGameOverRef = useRef(state.isGameOver);
+
+  const initializeGame = async () => {
+    const answer = await getRandowWord();
+    dispatch({ type: "RESET_GAME", payload: answer });
+  };
+
+  useEffect(() => {
+    initializeGame();
+  }, []);
+
+  useEffect(() => {
+    isGameOverRef.current = state.isGameOver;
+  }, [state.isGameOver]);
+
   const handleKeyDown = (event) => {
-    if (state.isGameOver) return;
     const key = event.key.toUpperCase();
+
+    if (isGameOverRef.current) {
+      return;
+    }
     if (event.key === "Backspace") {
       dispatch({ type: "REMOVE_LETTER" });
     }
@@ -78,17 +113,13 @@ function App() {
     }
   };
 
-  const handleReset = () => {
-    dispatch({ type: "RESET_GAME" });
-  };
-
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     console.log("124");
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [state.isGameOver]);
+  }, []);
 
   return (
     <div className="flex justify-center items-center grid-rows-6 h-screen relative">
@@ -120,7 +151,7 @@ function App() {
             Genius!
           </div>
           <button
-            onClick={handleReset}
+            onClick={initializeGame}
             className="bg-slate-400 bg-opacity-75 text-white text-2xl font-bold flex justify-center items-center w-[100px] h-[50px] rounded cursor-pointer"
           >
             Reset
