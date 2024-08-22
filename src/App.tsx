@@ -1,24 +1,40 @@
-import { useReducer, useEffect, useRef } from "react";
+import { useReducer, useEffect } from "react";
 import { db, collection, getDocs } from "./firebaseConfig";
 
-const initialState = {
+interface State {
+  input: string[];
+  guesses: { letters: string[]; feedback: string[] }[];
+  answer: string[];
+  currentRow: number;
+  isGameOver: boolean;
+}
+
+interface Action {
+  type: string;
+  payload?: string | string[];
+}
+
+const initialState: State = {
   input: [],
   guesses: [],
-  answer: [],
+  answer: [] as string[],
   currentRow: 0,
   isGameOver: false,
 };
 
-function reducer(state, action) {
+function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "ADD_LETTER":
       if (state.input.length > 4) {
         return state;
       }
-      return {
-        ...state,
-        input: [...state.input, action.payload],
-      };
+      if (typeof action.payload === "string") {
+        return {
+          ...state,
+          input: [...state.input, action.payload],
+        };
+      }
+
     case "REMOVE_LETTER": {
       const inputArray = [...state.input];
       inputArray.pop();
@@ -49,7 +65,7 @@ function reducer(state, action) {
     case "RESET_GAME":
       return {
         ...initialState,
-        answer: action.payload,
+        answer: Array.isArray(action.payload) ? action.payload : [],
       };
 
     default:
@@ -57,7 +73,7 @@ function reducer(state, action) {
   }
 }
 
-function getFeedbackColor(input, answer) {
+function getFeedbackColor(input: string[], answer: string[]): string[] {
   return input.map((letter, index) => {
     if (answer[index] === letter) {
       return "bg-green-100";
@@ -69,18 +85,18 @@ function getFeedbackColor(input, answer) {
   });
 }
 
-async function getRandowWord() {
+async function getRandowWord(): Promise<string[]> {
   const wordCollection = collection(db, "words");
   const wordSnapshot = await getDocs(wordCollection);
   const wordList = wordSnapshot.docs.map((doc) => doc.data().word);
   const randomIndex = Math.floor(Math.random() * wordList.length);
   const randomWord = wordList[randomIndex];
+  console.log("randomWord", randomWord);
   return randomWord.split("");
 }
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const isGameOverRef = useRef(state.isGameOver);
 
   const initializeGame = async () => {
     const answer = await getRandowWord();
@@ -91,14 +107,9 @@ function App() {
     initializeGame();
   }, []);
 
-  useEffect(() => {
-    isGameOverRef.current = state.isGameOver;
-  }, [state.isGameOver]);
-
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     const key = event.key.toUpperCase();
-
-    if (isGameOverRef.current) {
+    if (state.isGameOver) {
       return;
     }
     if (event.key === "Backspace") {
@@ -118,7 +129,7 @@ function App() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [state.isGameOver]);
 
   return (
     <div className="flex justify-center items-center grid-rows-6 h-screen relative">
@@ -147,7 +158,11 @@ function App() {
       {state.isGameOver && (
         <div className="absolute inset-0 flex flex-col justify-center items-center">
           <div className="bg-black bg-opacity-75 text-white text-2xl font-bold flex justify-center items-center w-[180px] h-[80px] rounded mb-10">
-            Genius!
+            {state.guesses.some(
+              (guess) => guess.letters.join("") === state.answer.join("")
+            )
+              ? "Genius"
+              : "Mulch"}
           </div>
           <button
             onClick={initializeGame}
