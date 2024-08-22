@@ -9,10 +9,11 @@ interface State {
   isGameOver: boolean;
 }
 
-interface Action {
-  type: string;
-  payload?: string | string[];
-}
+type Action =
+  | { type: "ADD_LETTER"; payload: string }
+  | { type: "REMOVE_LETTER" }
+  | { type: "SUBMIT_GUESS" }
+  | { type: "RESET_GAME"; payload: string[] };
 
 const initialState: State = {
   input: [],
@@ -65,7 +66,7 @@ function reducer(state: State, action: Action): State {
     case "RESET_GAME":
       return {
         ...initialState,
-        answer: Array.isArray(action.payload) ? action.payload : [],
+        answer: action.payload as string[],
       };
 
     default:
