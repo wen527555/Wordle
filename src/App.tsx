@@ -125,7 +125,6 @@ function App() {
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-    console.log("124");
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };

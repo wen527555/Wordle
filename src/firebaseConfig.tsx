@@ -7,12 +7,12 @@ import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyA5Z8Wj47It66IYH7EcP-tbD0N3dO_uzRw",
-  authDomain: "wordle-64eba.firebaseapp.com",
-  projectId: "wordle-64eba",
-  storageBucket: "wordle-64eba.appspot.com",
-  messagingSenderId: "303912823998",
-  appId: "1:303912823998:web:1438ac25f442210dbc82ef",
+  apiKey: "AIzaSyBkg5MKWWgwfGRquksAWcsOmyrGoxonHyI",
+  authDomain: "wordle-c9246.firebaseapp.com",
+  projectId: "wordle-c9246",
+  storageBucket: "wordle-c9246.appspot.com",
+  messagingSenderId: "421691797127",
+  appId: "1:421691797127:web:c9786a370da0736c545222",
 };
 
 // Initialize Firebase
